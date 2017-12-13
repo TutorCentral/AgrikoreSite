@@ -1,0 +1,603 @@
+﻿@{
+    ViewBag.Title = "MULA Token Exchange";
+}
+<h2>@ViewBag.Title.</h2>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.5/validator.min.js"></script>
+
+<script type="text/javascript" src="/Scripts/web3.js"></script>
+<script type="text/javascript" src="/Scripts/big.min.js"></script>
+<script type="text/javascript" src="/Scripts/bootbox.min.js"></script>
+<script type="text/javascript">
+
+    var tokenName;
+    var tokenSymbol;
+    var tokenDigits;
+
+    var contractAddr = '0x882a957ff3d3a2df6aee5d8067175fa990a71a72';
+    var reserveAcc = '0x5a5f9edec3df0708df6e4b35b871dc90b112c6f0';
+
+    var mula;
+
+  	$(function(){
+
+	  if (typeof web3 !== 'undefined') {
+	    web3 = new Web3(web3.currentProvider);
+	  } else {
+	    // set the provider you want from Web3.providers
+	    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+	  }
+
+	  var abi = '[{"constant":false,"inputs":[{"name":"tokenName","type":"string"},{"name":"tokenSymbol","type":"string"}],"name":"updateTokenInformation","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"anAddress","type":"address"}],"name":"openAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newSellPrice","type":"uint256"},{"name":"newBuyPrice","type":"uint256"}],"name":"setPrices","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newTransactionFee","type":"uint256"}],"name":"setTransactionFee","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalReservesInEther","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"numberOfAccounts","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFromReserve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"removeOwner","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"openMarketSale","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"killContract","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalCirculationInMulas","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"isOwner","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalReservesInMulas","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"closeMarketSale","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"mulaBuyingOpened","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"sellPrice","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"numberOfReserveAccounts","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_newAddress","type":"address"}],"name":"isMulaReserveAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"tokenName","type":"string"},{"name":"tokenSymbol","type":"string"}],"name":"setTokenInformation","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"openMulaSelfAddAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"computeReserves","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalCirculationInEther","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"standard","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"deleteContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"closeMulaSelfAddAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"marketSaleOpened","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"removeMulaAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"allowSelfAddAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalSavingsInEther","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"closeMulaBuying","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getMulaReserveEtherBalance","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"addOwner","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_newAddress","type":"address"}],"name":"isMulaAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalEtherReserves","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"addMulaAccountSelf","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"buyPrice","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"forceDeleteContract","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"Owners","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalSavingsInMulas","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalReserves","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_value","type":"uint256"}],"name":"withdrawEtherFromReserve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"transactionFee","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"addMulaReserveAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"buy","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getMulaReserveBalance","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"maximumAmount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"frozenAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"minimumAmount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"MulaReserves","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"mintedAmount","type":"uint256"}],"name":"mintToken","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"MulaHolders","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"anAddress","type":"address"}],"name":"sellBackAccountBalance","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"addMulaAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newReservePrice","type":"uint256"}],"name":"setReservePrice","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_newAddress","type":"address"}],"name":"removeMulaReserveAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"reservePrice","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"returnAllFunds","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"sell","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"target","type":"address"},{"name":"freeze","type":"bool"}],"name":"freezeAccount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newMinimumAmount","type":"uint256"}],"name":"setMinimumAmount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"selltoReserve","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"newMaximumAmount","type":"uint256"}],"name":"setMaximumAmount","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"openMulaBuying","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"initialSupply","type":"uint256"},{"name":"tokenName","type":"string"},{"name":"decimalUnits","type":"uint8"},{"name":"tokenSymbol","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":false,"name":"target","type":"address"},{"indexed":false,"name":"frozen","type":"bool"}],"name":"FrozenFunds","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"target","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"Withdrawal","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"TransferTransactionFee","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newName","type":"string"},{"indexed":false,"name":"newSymbol","type":"string"}],"name":"UpdatedTokenInformation","type":"event"}]';
+
+	  var abi = JSON.parse(abi);
+	  var contract = web3.eth.contract(abi);
+	  mula = contract.at(contractAddr);
+	  // console.log(mula);
+
+	  tokenName = mula.name();
+	  tokenSymbol = mula.symbol();
+	  tokenDigits = mula.decimals().toNumber();
+
+	  updateReserveInfo();
+	  $('#updateReserve').on('click', function (e) {
+		  updateReserveInfo();
+	  });
+
+	  $('#tableAccount').bootstrapTable({
+	    data: []
+	  });
+	  getAccountInfo();
+	  $('#updateAccount').on('click', function (e) {
+	  	  getAccountInfo();
+	  });
+
+	  if (web3.eth.accounts.length > 0) {
+	  	for (i=0;i<web3.eth.accounts.length;i++) {
+                                               $('#buySelect').append('<option value="'+web3.eth.accounts[i]+'">'+web3.eth.accounts[i]+'</option>');
+		  	 $('#sellSelect').append('<option value="'+web3.eth.accounts[i]+'">'+web3.eth.accounts[i]+'</option>');
+	  		 $('#fromSelect').append('<option value="'+web3.eth.accounts[i]+'">'+web3.eth.accounts[i]+'</option>');
+	  		 $('#toSelect').append('<option value="'+web3.eth.accounts[i]+'">'+web3.eth.accounts[i]+'</option>');
+	  	}
+	  }
+
+	  $('#buyBtn').on('click', function (e) {
+	  	  if (!$('#buyAmount').val() || parseFloat($('#buyAmount').val()) <= 0) {
+		  	  bootbox.alert("Invalid amount input!");
+		  }
+		  else {
+			  var acc = $('#buySelect').val();
+			  var val = web3.toWei(parseFloat($('#buyAmount').val()), "ether");
+
+			  if (mula.mulaBuyingOpened()){
+			  	if (mula.allowSelfAddAccount() || mula.isMulaAccount(acc)) {
+				  bootbox.prompt({
+				  	title: "Please input a password to unlock the account!",
+				  	inputType: 'password',
+				  	callback: function (result) {
+					  	if (result) {
+						  	try {
+						  		web3.personal.unlockAccount(acc, result)
+						  		// var getData = mula.buy.getData();
+						  		// web3.eth.sendTransaction({to:contractAddr, from:acc, data: getData, value: amount});
+						  		mula.buy({from: acc, value: val}, function(error, result) {
+						  			if(!error) {
+						  				console.log("Transaction Hash:" + result) // The hash of the transaction, which deploys the contract
+						  			   	waitForTxToBeMined(result);
+						  			}
+						  			else {
+						  				 alert("Transaction Failed! " + error);
+						  				 console.error(error);
+						  			}
+						  		});
+						  	}
+					  		catch (err) {
+						  		alert("Error: " + err.message);
+						  		console.log(err);
+					  		}
+				  		}
+				  	}
+				  });
+			    }
+			    else {
+				    bootbox.alert("The selected account is not enrolled!");
+			    }
+		  	  }
+		  	  else {
+			  	  bootbox.alert("The ICO is not opened!");
+		  	  }
+		  }
+	  });
+
+	  $('#tranBtn').on('click', function (e) {
+		  if (!$('#tranAmount').val() || parseFloat($('#tranAmount').val()) <= 0) {
+		  		bootbox.alert("Invalid amount input!");
+		  }
+		  else if ($('#fromSelect').val() == $('#toSelect').val()) {
+			  	bootbox.alert("Must select different account to transfer!");
+		  }
+		  else {
+			  var from_acc = $('#fromSelect').val();
+			  var to_acc = $('#toSelect').val();
+			  var val = parseFloat($('#tranAmount').val());
+			  bootbox.prompt({
+				  title: "Please input a password to unlock the account!",
+				  inputType: 'password',
+				  callback: function (result) {
+				  	if (result) {
+				  		try {
+				  		  	web3.personal.unlockAccount(from_acc, result);
+				  		  	mula.transfer(to_acc, val, {from: from_acc}, function(error, result) {
+				  		  		if(!error) {
+				  		  			console.log("Transaction Hash:" + result) // The hash of the transaction, which deploys the contract
+				  		  			waitForTxToBeMined(result);
+				  		  		}
+				  		  		else {
+				  		  			 alert("Transaction Failed! " + error);
+				  		  			 console.error(error);
+				  		  		}
+				  		  	});
+				  		}
+				  	  	catch (err) {
+				  		  	alert("Error: " + err.message);
+				  		  	console.log(err);
+				  	  	}
+				   	}
+				  }
+			   });
+
+		  }
+	  });
+
+	  $('#sellBtn').on('click', function (e) {
+	      if (!$('#sellAmount').val() || parseFloat($('#sellAmount').val()) <= 0) {
+	  	  	  bootbox.alert("Invalid amount input!");
+	  	  }
+	  	  else {
+	  		  var acc = $('#sellSelect').val();
+	  		  var val = parseFloat($('#sellAmount').val());
+	  		  bootbox.prompt({
+	  		  	title: "Please input a password to unlock the account!",
+	  		  	inputType: 'password',
+	  		  	callback: function (result) {
+	  			  	if (result) {
+	  				  	try {
+	  				  		web3.personal.unlockAccount(acc, result)
+	  				  		// var getData = mula.buy.getData();
+	  				  		// web3.eth.sendTransaction({to:contractAddr, from:acc, data: getData, value: amount});
+	  				  		mula.selltoReserve(val, {from: acc}, function(error, result) {
+	  				  			if(!error) {
+	  				  				console.log("Transaction Hash:" + result) // The hash of the transaction, which deploys the contract
+	  				  			   	waitForTxToBeMined(result);
+	  				  			}
+	  				  			else {
+	  				  				 alert("Transaction Failed! " + error);
+	  				  				 console.error(error);
+	  				  			}
+	  				  		});
+	  				  	}
+	  			  		catch (err) {
+	  				  		alert("Error: " + err.message);
+	  				  		console.log(err);
+	  			  		}
+	  		  		}
+	  		  	}
+	  		  });
+	  	  }
+	  });
+
+	  async function waitForTxToBeMined (txHash) {
+	    let txReceipt;
+	    while (!txReceipt) {
+		  	try {
+		  	  txReceipt = await web3.eth.getTransactionReceipt(txHash);
+		  	} catch (err) {
+		  	  return indicateFailure(err);
+		  	}
+	    }
+	    indicateSuccess(txReceipt);
+	  }
+
+	  function indicateSuccess(receipt){
+		 bootbox.alert("Transaction Succeed! Transaction hash: " + receipt.transactionHash);
+	     console.log("Transaction successfully mined: Block #: " + receipt.blockNumber + ", Block Hash: " + receipt.blockNumber);
+	  }
+	  function indicateFailure(err){
+		 bootbox.alert("Transaction Failed! " + err);
+	     console.error(err);
+	  }
+
+
+	  function updateReserveInfo() {
+		  web3.eth.defaultAccount = reserveAcc;
+		  web3.personal.unlockAccount(reserveAcc, "testing");
+
+		  var buyPrice = parseFloat(mula.buyPrice());
+		  var reservePrice = parseFloat(mula.reservePrice());
+		  var totalSupply = parseFloat(mula.totalSupply());
+		  // var totalReserves = parseFloat(mula.getMulaReserveBalance());
+		  var totalReserves = getTotolMulaReserve();
+		  // var totalEtherReserves = parseFloat(mula.getMulaReserveEtherBalance().toNumber());
+		  var totalEtherReserves = getTotalEitherReserves();
+		  var totalReservesInEther = parseFloat(totalEtherReserves + totalReserves/fixDigitsFromEther(buyPrice));
+		  var totalReservesInMulas = parseFloat(totalEtherReserves / fixDigitsFromEther(buyPrice) + totalReserves);
+		  var totalCirculationInMulas = parseFloat(totalSupply) - parseFloat(totalReserves);
+		  var totalCirculationInEther = parseFloat(totalCirculationInMulas / reservePrice);
+		  console.log(totalCirculationInMulas);
+		  console.log(reservePrice)
+		  console.log(fixDigitsFromEther(reservePrice))
+		  var transactionFee = parseFloat(mula.transactionFee());
+		  var mulaBuyingOpened = mula.mulaBuyingOpened();
+		  var allowSelfAddAccount = mula.allowSelfAddAccount();
+
+		  $('#total_mula_supply').text(totalSupply);
+		  $('#buy_price').text(buyPrice);
+		  $('#reserve_price').text(reservePrice);
+		  $('#total_mula_reserve').text(totalReserves);
+		  $('#total_ether_reserve').text(fixDigitsToEther(totalEtherReserves));
+		  $('#reserve_value_ether').text(fixDigitsToEther(totalReservesInEther));
+		  $('#reserve_value_mula').text(totalReservesInMulas);
+		  $('#circul_value_mula').text(totalCirculationInMulas);
+		  $('#circul_value_ether').text(totalCirculationInEther);
+		  $('#tran_fee_mula').text(transactionFee);
+		  if (mulaBuyingOpened) {
+			  $('#is_buy_open').text('Yes');
+		  }
+		  else {
+			  $('#is_buy_open').text('No');
+		  }
+		  if (allowSelfAddAccount) {
+		  	  $('#is_auto_enroll').text('Yes');
+		  }
+		  else {
+		      $('#is_auto_enroll').text('No');
+		  }
+	  }
+
+	  function getTotalEitherReserves() {
+		  var val = 0;
+		  var numReserves = mula.numberOfReserveAccounts();
+		  for (var i=0; i<numReserves; i++){
+			  var bal = web3.eth.getBalance(mula.MulaReserves(i))
+			  val = val + bal.toNumber();
+		  }
+		  return val;
+	  }
+
+	  function getTotolMulaReserve() {
+		  var val = 0;
+		  var numReserves = mula.numberOfReserveAccounts();
+		  for (var i=0; i<numReserves; i++){
+			  val = val + mula.balanceOf(mula.MulaReserves(i)).toNumber()
+		   }
+		   return val;
+	  }
+
+	  function getAccountInfo() {
+		  var c_acc = []
+		  // Push Contract Account
+		  c_acc.push(contractAddr);
+		  // Push Normal Accounts
+		  var n_acc = web3.personal.listAccounts;
+		  var acc = c_acc.concat(n_acc)
+
+		  var info = [];
+		  acc.forEach(function(item, index, arr){info.push({'index':index, 'account': item})});
+
+		  $('#tableAccount').bootstrapTable("destroy");
+		  $('#tableAccount').bootstrapTable({data: info});
+	  }
+
+  	});
+
+
+
+    function fixDigitsToEther(value) {
+      // var val = parseFloat(value);
+      // return value/Math.pow(10,18);
+      var val = new Big(value);
+      var factor = new Big(10).pow(18);
+      var res = val.div(factor);
+      return res;
+    }
+
+    function fixDigitsFromEther(value) {
+      // var val = parseFloat(value);
+      // return value*Math.pow(10,18);
+      var val = new Big(value);
+      var factor = new Big(10).pow(18);
+      var res = val.times(factor);
+      return res;
+    }
+
+    function accFormatter_iscontract(cell, row) {
+
+      var addr = cell;
+
+      if (addr == contractAddr) {
+    	return "Yes";
+      }
+      else {
+    	return "No";
+      }
+    }
+
+    function accFormatter_isreserved(cell, row) {
+
+	    var addr = cell;
+
+	    if (mula.isMulaReserveAccount(addr)) {
+		    return "Yes";
+	    }
+	    else {
+		    return "No";
+	    }
+	}
+
+	function accFormatter_ismula(cell, row) {
+
+		var addr = cell;
+		if (mula.allowSelfAddAccount()) {
+			return "Yes";
+		}
+		else {
+			if (mula.isMulaAccount(addr)) {
+				return "Yes";
+			}
+			else {
+				return "No";
+			}
+		}
+	}
+
+	function accFormatter_mula(cell, row) {
+
+		var addr = cell;
+
+		var val;
+
+		if (addr == contractAddr) {
+			val = mula.balanceOf(contractAddr).toNumber();
+		}
+		else {
+			val = mula.balanceOf(addr).toNumber();
+		}
+
+		return val;
+	}
+
+	function accFormatter_eth(cell, row) {
+
+		var addr = cell;
+
+		var val = web3.eth.getBalance(addr).toNumber();
+
+		return fixDigitsToEther(val);
+	}
+
+
+</script>
+
+  <style type="text/css">
+
+	body {
+		background: #337ab7
+	}
+
+	.header {
+		color: white;
+	}
+
+	.info-table {
+		border: solid 1px #DDEEEE;
+		border-collapse: collapse;
+		border-spacing: 0;
+		font: normal 13px Arial, sans-serif;
+	}
+	.info-table tbody td {
+		border: solid 1px #DDEEEE;
+		color: #333;
+		padding: 10px;
+		text-shadow: 1px 1px 1px #fff;
+	}
+	.info-table-rounded {
+		border: none;
+	}
+	.info-table-rounded tbody td {
+		border: none;
+		border-top: solid 1px #957030;
+		background-color: #EED592;
+	}
+	.info-table-rounded tbody tr:first-child td:first-child {
+		border-radius: 10px 0 0 0;
+	}
+	.info-table-rounded tbody tr:first-child td:last-child {
+		border-radius: 0 10px 0 0;
+	}
+	.info-table-rounded tbody tr:last-child td:first-child {
+		border-radius: 0 0 0 10px;
+	}
+	.info-table-rounded tbody tr:last-child td:last-child {
+		border-radius: 0 0 10px 0;
+	}
+
+	table#tableBlock td, table#tableTran td { white-space:nowrap; }
+
+	legend.scheduler-border {
+		width:inherit; /* Or auto */
+		padding:0 10px; /* To give a bit of padding on the left and right */
+		border-bottom:none;
+	}
+
+	fieldset.scheduler-border {
+		border: 1px groove #ddd !important;
+		padding: 0 1.4em 1.4em 1.4em !important;
+		margin: 0 0 1.5em 0 !important;
+		-webkit-box-shadow:  0px 0px 0px 0px #000;
+				box-shadow:  0px 0px 0px 0px #000;
+	}
+
+	legend.scheduler-border {
+		font-size: 1.2em !important;
+		font-weight: bold !important;
+		text-align: left !important;
+
+	}
+
+	.table thead th {
+		vertical-align: bottom;
+		border-bottom: 2px solid #eceeef;
+	}
+
+	.thead-inverse th {
+		color: #fff;
+		background-color: #292b2c;
+	}
+
+	.thead-default th {
+	  color: #464a4c;
+	  background-color: #eceeef;
+	}
+
+	.table td, .table th {
+		padding: .75rem;
+		vertical-align: top;
+		border-top: 1px solid #eceeef;
+	}
+
+	.table-striped tbody tr:nth-of-type(odd) {
+		background-color: rgba(0,0,0,.05);
+	}
+
+  </style>
+
+  <div class="header" style="padding-left:50px;">
+	<h3>Moolah Token Exchange for ETH</h3>
+  </div>
+
+  <div class="jumbotron" style="padding-left:50px; padding-right:50px;">
+
+	<fieldset class="scheduler-border">
+	  <legend class="scheduler-border">Reserve Info</legend>
+	  <table id="basicInfo" class="info-table info-table-rounded">
+	    <tr>
+		  <td style="width:300px;">Total MULA Supply:</td>
+		  <td style="width:300px;"><strong id="total_mula_supply"></strong></td>
+		  <td>MULA</td>
+	    </tr>
+	    <tr>
+		  <td style="width:300px;">Mula Reserve Purchase Price per Ether:</td>
+		  <td><strong id="buy_price"></strong></td>
+		  <td>MULA/ETH</td>
+	    </tr>
+	    <tr>
+		  <td style="width:300px;">Mula Reserve Sell Price per Ether:</td>
+		  <td><strong id="reserve_price"></strong></td>
+		  <td>MULA/ETH</td>
+	    </tr>
+		<tr>
+		  <td style="width:300px;">Total MULAs in Reserve:</td>
+		  <td><strong id="total_mula_reserve"></strong></td>
+		  <td>MULA</td>
+		</tr>
+		<tr>
+		  <td>Total Ethers in Reserve:</td>
+		  <td><strong id="total_ether_reserve"></strong></td>
+		  <td>ETH</td>
+		</tr>
+		<tr>
+		  <td>Total Value of Reserves in MULAs:</td>
+		  <td><strong id="reserve_value_mula"></strong></td>
+		  <td>MULA</td>
+		</tr>
+		<tr>
+		  <td>Total Value of Reserves in Ether:</td>
+		  <td><strong id="reserve_value_ether"></strong></td>
+		  <td>ETH</td>
+		</tr>
+		<tr>
+		  <td>Total Value of Circulating MULAs:</td>
+		  <td><strong id="circul_value_mula"></strong></td>
+		  <td>MULA</td>
+		</tr>
+		<tr>
+		  <td>Total Value of Circulating MULAs in Ether:</td>
+		  <td><strong id="circul_value_ether"></strong></td>
+		  <td>ETH</td>
+		</tr>
+		<tr>
+		  <td>Transaction Fee:</td>
+		  <td><strong id="tran_fee_mula"></strong></td>
+		  <td>MULA</td>
+		</tr>
+		<tr>
+		  <td>Is MULA ICO Opened?</td>
+		  <td><strong id="is_buy_open"></strong></td>
+		  <td>&nbsp;</td>
+		</tr>
+		<tr>
+		  <td>Is Self ICO Enrollment Allowed?</td>
+		  <td><strong id="is_auto_enroll"></strong></td>
+		  <td>&nbsp;</td>
+		</tr>
+	  </table>
+	  <button type="button" class="btn btn-primary" id="updateReserve" style="margin-top:5px;">Update</button>
+	</fieldset>
+	<br>
+	<fieldset class="scheduler-border">
+	  <legend class="scheduler-border">Accounts Info</legend>
+	  <div class="container" style="height:400px;overflow:scroll;padding-left:0px;padding-right:0px;margin-left:0px;margin-right:0px;margin-top:20px;width:100%;">
+	  	<table id="tableAccount" class="table table-striped">
+	  		<thead class="thead-inverse">
+	  			<tr>
+	  				<th data-field="index">No.</th>
+	  				<th data-field="account">Account</th>
+					<th data-field="account" data-formatter="accFormatter_iscontract">Is Contract Account?</th>
+					<th data-field="account" data-formatter="accFormatter_isreserved">Is Reserved Account?</th>
+	  				<th data-field="account" data-formatter="accFormatter_ismula">Is MULA Account?</th>
+	  				<th data-field="account" data-formatter="accFormatter_mula">MULA</th>
+	  				<th data-field="account" data-formatter="accFormatter_eth">ETH</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  </div>
+	  <button type="button" class="btn btn-primary" id="updateAccount" style="margin-top:5px;">Update</button>
+	</fieldset>
+	<br>
+	<fieldset class="scheduler-border">
+	  <legend class="scheduler-border">ICO MULA Purchase</legend>
+	  	<h5>Purchase Account: </h5>
+	  	<select id="buySelect" style="width:400px;height:28px;"></select>
+	  	<h5>Ether to Spend (ETH): </h5>
+	  	<input type="number" id="buyAmount" min="0" step="0.1" style="width:400px;"/>
+	  	<br>
+	  	<button type="button" class="btn btn-primary" id="buyBtn" style="margin-top:10px;">Buy</button>
+	</fieldset>
+	<br>
+	<fieldset class="scheduler-border">
+	  <legend class="scheduler-border">P2P MULA Transfer</legend>
+	  	<h5>From: </h5>
+	  	<select id="fromSelect" style="width:400px;height:28px;"></select>
+	  	<h5>To: </h5>
+	  	<select id="toSelect" style="width:400px;height:28px;"></select>
+	  	<h5>Amount to Transfer (MULA): </h5>
+	  	<input type="number" id="tranAmount" min="0" step="0.1" style="width:400px;"/>
+	  	<br>
+	  	<button type="button" class="btn btn-primary" id="tranBtn" style="margin-top:10px;">Transfer</button>
+	</fieldset>
+	<br>
+	<fieldset class="scheduler-border">
+	  <legend class="scheduler-border">Sell MULA to Reserve</legend>
+	  	<h5>Sell Account: </h5>
+	  	<select id="sellSelect" style="width:400px;height:28px;"></select>
+	  	<h5>Amount to Sell (MULA): </h5>
+	  	<input type="number" id="sellAmount" min="0" step="0.1" style="width:400px;"/>
+	  	<br>
+	  	<button type="button" class="btn btn-primary" id="sellBtn" style="margin-top:10px;">Sell</button>
+	</fieldset>
+	<br>

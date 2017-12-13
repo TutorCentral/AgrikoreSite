@@ -1,0 +1,29 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<h2>@ViewBag.Title.</h2>
+
+<p>This basic web application is intended to explain and to demistify block chains.</p>
+<p>
+    The blockchain is made of groups of transactions grouped by blocks in time.<br />
+    Currently bitcoins is at over 400,000 blocks with each block being added around every minute.<br/>
+    Start from any block in that sequence, say 120,000<br /> Inspect the transactions and the addresses in the block<br/>
+    Then pick a transaction and inspect how they are composed. <br /> Then pick an address and inspect how it arrived at its balance <br/>
+    Notice that amounts do not mix in a wallet when used for new transactions but are added together in pieces of input and output from prior transactions<br /> This allows every single unit in a wallet to be acounted for and traced back to its first transaction
+</p>
+<p>
+    Also notice that the transaction that starts every block is one with no input. This is a coinbase and is the mining reward for the node that processed transactions and created the block<br /> Also notice that the reward was 50 BTC at the outset, and on later blocks 25, and now 12.5 (as at July 1017). <br/>
+    Also notice that the early miners were collecting that reward like clockwork every 10 minutes, even when there were no transaction in the blocks. <br /> In fact, blocks did not really start consistently having transactions until around 100,000 blocks sometime in 2010.<br/>
+    Finally, try to trace any randomly selected transactions through its input back to a coinbase.
+</p>
+<p> When wrapped in a nice wallet application (such as on coinbase.com) shielding the cryptic wallet ids with friendly account names, this can be just as user friendly as a bank account application</p>
+<p>
+    Here are some of my transactions for instance that can be used as examples: <br/>
+    5b941cd39e5fa61a8d47946fc93ad0b3a5a287d2ca1d2649c3ede69136eda6f4<br/>
+    91d126e12e5e49c70b8780fd3b1de4cd12a553356317da4e3888e149d5095451
+</p>
+<p>
+    And my wallets:<br/>
+    1PWKTpMCg23BQXL8WJvDqDzBBvqrtBsdPd<br />
+    16jLHNe2QmE9xDzGdNYPdXy7wECdpBqb2f
+</p>

@@ -1,0 +1,567 @@
+﻿@{
+    ViewBag.Title = "MULA Exchange Tokens on the Ethereum Network";
+}
+<h2>@ViewBag.Title.</h2>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.5/validator.min.js"></script>
+
+<script type="text/javascript" src="/Scripts/web3.js"></script>
+<script type="text/javascript" src="/Scripts/big.min.js"></script>
+<script type="text/javascript" src="/Scripts/bootbox.min.js"></script>
+
+
+<script type="text/javascript">
+  $(function(){
+
+    if (typeof web3 !== 'undefined') {
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      // set the provider you want from Web3.providers
+      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+    }
+
+    var coinbase = web3.eth.coinbase;
+    document.getElementById('coinbase').innerText = coinbase;
+    var balance = web3.fromWei(web3.eth.getBalance(coinbase), "ether");
+    document.getElementById('balance').innerText = web3.toDecimal(balance);
+
+    var blockNumber = web3.eth.blockNumber;
+    document.getElementById('latestBlock').innerText = blockNumber;
+    var hash = web3.eth.getBlock(blockNumber).hash;
+    document.getElementById('latestBlockHash').innerText = hash;
+    var timeStamp = web3.eth.getBlock(blockNumber).timestamp;
+    document.getElementById('latestBlockTimestamp').innerText = Date(timeStamp);
+    var numpeer = web3.net.peerCount;
+    document.getElementById('numPeers').innerText = numpeer;
+
+    document.getElementById("blockSelect").max = blockNumber;
+    $('#blockSelect').val(1);
+
+    var blks = [];
+    $('#tableBlock').bootstrapTable({
+      data: blks
+    })
+
+    $('#blockBtn').on('click', function (e) {
+     var blkid = parseInt($("#blockSelect").val());
+     var blk = web3.eth.getBlock(blkid);
+     console.log(blk);
+     blks.push(blk);
+     $('#tableBlock').bootstrapTable("destroy");
+     $('#tableBlock').bootstrapTable({data: blks});
+    });
+
+    var trans = [];
+    $('#tableTran').bootstrapTable({
+      data: trans
+    })
+
+    $('#tranBtn').on('click', function (e) {
+     var tranhash = $("#tranInput").val().trim();
+     var tran = web3.eth.getTransaction(tranhash);
+     console.log(tran);
+     trans.push(tran);
+     $('#tableTran').bootstrapTable("destroy");
+     $('#tableTran').bootstrapTable({data: trans});
+    });
+
+    $('#listTran').bootstrapTable({
+      data: []
+    })
+    $("#tableBlock").on("click-cell.bs.table", function (e, field, value, row, $element) {
+       if (field =="transactions"){
+         var trans = value;
+         $('#transModal').modal('show');
+         $('#transModal').find('.modal-title').first().text('Transactions in Block #' + row.number);
+         var trans = [];
+         value.forEach(function(item, index, arr){trans.push({'index':index, 'hash': item})});
+         $('#listTran').bootstrapTable("destroy");
+         $('#listTran').bootstrapTable({data: trans});
+       }
+    });
+
+    $('#tableAccount').bootstrapTable({
+      data: []
+    });
+    getAccountInfo();
+    $('#updateAccount').on('click', function (e) {
+        getAccountInfo();
+    });
+    $('#addAccount').on('click', function(e){
+
+      var isError;
+      var form = $('<form><div class="form-group has-feedback"><label class="control-label">Password</label><div><input class="form-control" id="inputPassword" type="password" placeholder="Password" data-minlength="6" required /><div class="help-block with-errors"></div></div></div><div class="form-group has-feedback"><label class="control-label">Confirm Password</label><div><input class="form-control" id="inputPasswordConfirm" type="password" data-match="#inputPassword" data-match-error="Whoops, these don\'t match" placeholder="Confirm Password" /><div class="help-block with-errors"></div></div></div></form>');
+      form.validator().on('submit', function (e) {
+        if (e.isDefaultPrevented()) {
+          isError=true;
+        } else {
+          isError=false;
+        }
+        e.preventDefault();
+      })
+      var dialog = bootbox.dialog({
+        title: 'Please setup the password:',
+        message: form,
+        buttons: {
+          cancel: {
+              label: "Cancel",
+              className: 'btn-danger',
+              callback: function(){
+              }
+          },
+          submit: {
+              label: "Confirm",
+              className: 'btn-info',
+              callback: function(){
+                  form.submit();
+                  if (isError) {
+                    return false;
+                  }
+                  else {
+                    var pwd = $('#inputPassword').val();
+                    console.log(pwd);
+                    var acc = web3.personal.newAccount(pwd);
+                    console.log(acc);
+                    alert("Account: " + acc + " is created!");
+                  }
+              }
+          }
+        }
+      });
+    });
+
+
+
+    if (web3.eth.accounts.length > 0) {
+      for (i=0;i<web3.eth.accounts.length;i++) {
+         $('#fromSelect').append('<option value="'+web3.eth.accounts[i]+'">'+web3.eth.accounts[i]+'</option>');
+         $('#toSelect').append('<option value="'+web3.eth.accounts[i]+'">'+web3.eth.accounts[i]+'</option>');
+      }
+    }
+
+    $('#tranEthBtn').on('click', function (e) {
+        if (!$('#tranAmount').val() || parseFloat($('#tranAmount').val()) <= 0) {
+            bootbox.alert("Invalid amount input!");
+        }
+        else if ($('#fromSelect').val() == $('#toSelect').val()) {
+            bootbox.alert("Must select different account to transfer!");
+        }
+        else {
+          var from_acc = $('#fromSelect').val();
+          var to_acc = $('#toSelect').val();
+          var val = web3.toWei(parseFloat($('#tranAmount').val()), "ether")
+          bootbox.prompt({
+            title: "Please input a password to unlock the account!",
+            inputType: 'password',
+            callback: function (result) {
+              if (result) {
+                try {
+                    web3.personal.unlockAccount(from_acc, result);
+                    web3.eth.sendTransaction({from:from_acc, to:to_acc, value: val}, function(error, result) {
+                      if(!error) {
+                        console.log("Transaction Hash:" + result) // The hash of the transaction, which deploys the contract
+                        waitForTxToBeMined(result);
+                      }
+                      else {
+                         alert("Transaction Failed! " + error);
+                         console.error(error);
+                      }
+                    });
+                }
+                  catch (err) {
+                    alert("Error: " + err.message);
+                    console.log(err);
+                  }
+               }
+            }
+           });
+
+        }
+      });
+
+      async function waitForTxToBeMined (txHash) {
+          let txReceipt;
+          while (!txReceipt) {
+            try {
+              txReceipt = await web3.eth.getTransactionReceipt(txHash);
+            } catch (err) {
+              return indicateFailure(err);
+            }
+          }
+          indicateSuccess(txReceipt);
+        }
+
+        function indicateSuccess(receipt){
+         bootbox.alert("Transaction Succeed! Transaction hash: " + receipt.transactionHash);
+           console.log("Transaction successfully mined: Block #: " + receipt.blockNumber + ", Block Hash: " + receipt.blockNumber);
+        }
+        function indicateFailure(err){
+         bootbox.alert("Transaction Failed! " + err);
+           console.error(err);
+        }
+
+  });
+
+  function tranFormatter(cell, row) {
+    return cell.length;
+  }
+
+  function dateFormatter(cell, row) {
+    return Date(cell);
+  }
+
+  function dataFormatter(cell, row) {
+
+    if (cell == '0x') {
+      return "Yes";
+    }
+    else {
+      return "No";
+    }
+  }
+
+  function receiptFormatter(cell, row) {
+
+    var receipt = web3.eth.getTransactionReceipt(cell);
+
+    if (receipt == null) {
+      return "No";
+    }
+    else {
+      return "Yes";
+    }
+  }
+
+  function gasusedFormatter(cell, row) {
+
+    var receipt = web3.eth.getTransactionReceipt(cell);
+
+    if (receipt == null) {
+      return "n/a";
+    }
+    else {
+      return receipt.gasUsed;
+    }
+  }
+
+  function gascumulativeFormatter(cell, row) {
+
+    var receipt = web3.eth.getTransactionReceipt(cell);
+
+    if (receipt == null) {
+      return "n/a";
+    }
+    else {
+      return receipt.cumulativeGasUsed;
+    }
+  }
+
+  function contractFormatter(cell, row) {
+
+    var receipt = web3.eth.getTransactionReceipt(cell);
+
+    if (receipt == null || receipt.contractAddress == null) {
+      return "n/a";
+    }
+    else {
+      return receipt.contractAddress;
+    }
+  }
+
+  function getAccountInfo() {
+
+      // Push Normal Accounts
+      var acc = web3.personal.listAccounts;
+
+      var info = [];
+      acc.forEach(function(item, index, arr){info.push({'index':index, 'account': item})});
+
+      $('#tableAccount').bootstrapTable("destroy");
+      $('#tableAccount').bootstrapTable({data: info});
+    }
+
+  function accFormatter_eth(cell, row) {
+
+    var addr = cell;
+
+    var val = web3.eth.getBalance(addr).toNumber();
+
+    return fixDigitsToEther(val);
+  }
+
+  function fixDigitsToEther(value) {
+    // var val = parseFloat(value);
+    // return value/Math.pow(10,18);
+    var val = new Big(value);
+    var factor = new Big(10).pow(18);
+    var res = val.div(factor);
+    return res;
+  }
+
+  function fixDigitsFromEther(value) {
+    // var val = parseFloat(value);
+    // return value*Math.pow(10,18);
+    var val = new Big(value);
+    var factor = new Big(10).pow(18);
+    var res = val.times(factor);
+    return res;
+  }
+</script>
+
+<style type="text/css">
+    body {
+        background: #337ab7;
+    }
+
+    .header {
+        color: white;
+    }
+
+    .info-table {
+        border: solid 1px #DDEEEE;
+        border-collapse: collapse;
+        border-spacing: 0;
+        font: normal 13px Arial, sans-serif;
+    }
+
+        .info-table tbody td {
+            border: solid 1px #DDEEEE;
+            color: #333;
+            padding: 10px;
+            text-shadow: 1px 1px 1px #fff;
+        }
+
+    .info-table-rounded {
+        border: none;
+    }
+
+        .info-table-rounded tbody td {
+            border: none;
+            border-top: solid 1px #957030;
+            background-color: #EED592;
+        }
+
+        .info-table-rounded tbody tr:first-child td:first-child {
+            border-radius: 10px 0 0 0;
+        }
+
+        .info-table-rounded tbody tr:first-child td:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        .info-table-rounded tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 10px;
+        }
+
+        .info-table-rounded tbody tr:last-child td:last-child {
+            border-radius: 0 0 10px 0;
+        }
+
+    table#tableBlock td, table#tableTran td {
+        white-space: nowrap;
+    }
+
+    legend.scheduler-border {
+        width: inherit; /* Or auto */
+        padding: 0 10px; /* To give a bit of padding on the left and right */
+        border-bottom: none;
+    }
+
+    fieldset.scheduler-border {
+        border: 1px groove #ddd !important;
+        padding: 0 1.4em 1.4em 1.4em !important;
+        margin: 0 0 1.5em 0 !important;
+        -webkit-box-shadow: 0px 0px 0px 0px #000;
+        box-shadow: 0px 0px 0px 0px #000;
+    }
+
+    legend.scheduler-border {
+        font-size: 1.2em !important;
+        font-weight: bold !important;
+        text-align: left !important;
+    }
+
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #eceeef;
+    }
+
+    .thead-inverse th {
+        color: #fff;
+        background-color: #292b2c;
+    }
+
+    .thead-default th {
+        color: #464a4c;
+        background-color: #eceeef;
+    }
+
+    .table td, .table th {
+        padding: .75rem;
+        vertical-align: top;
+        border-top: 1px solid #eceeef;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,.05);
+    }
+
+    .customHeader {
+        color: green;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .customLabel {
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+
+    .customInput {
+        width: 100%;
+    }
+</style>
+
+
+    <div class="header" style="padding-left:50px;">
+        <h3>Blockchain Info</h3>
+    </div>
+
+    <fieldset class="scheduler-border">
+        <legend class="scheduler-border">Basic Info</legend>
+        <table id="basicInfo" class="info-table info-table-rounded">
+            <tr>
+                <td style="width:200px;">Coinbase Address:</td>
+                <td><strong id="coinbase"></strong></td>
+            </tr>
+            <tr>
+                <td>Balance:</td>
+                <td><strong id="balance"></strong></td>
+            </tr>
+            <tr>
+                <td>Latest Block Number:</td>
+                <td><strong id="latestBlock"></strong></td>
+            </tr>
+            <tr>
+                <td>Latest Block Timestamp:</td>
+                <td><strong id="latestBlockTimestamp"></strong></td>
+            </tr>
+            <tr>
+                <td>Latest Block Hash:</td>
+                <td><strong id="latestBlockHash"></strong></td>
+            </tr>
+            <tr>
+                <td>Number of Peers:</td>
+                <td><strong id="numPeers"></strong></td>
+            </tr>
+        </table>
+    </fieldset>
+    <br>
+
+    <fieldset class="scheduler-border">
+        <legend class="scheduler-border">Blocks Info</legend>
+        <button type="button" class="btn btn-primary" id="blockBtn">Block Info</button>
+        <input type="number" id="blockSelect" min="1" step="1" style="width:100px; height:32px; padding-bottom:3px;" />
+        <div class="container" style="height:400px;overflow:scroll;padding-left:0px;padding-right:0px;margin-left:0px;margin-right:0px;margin-top:20px;width:100%;">
+            <table id="tableBlock" class="table table-striped">
+                <thead class="thead-inverse">
+                    <tr>
+                        <th data-field="number">No.</th>
+                        <th data-field="hash">Hash</th>
+                        <th data-field="parentHash">Parent Hash</th>
+                        <th data-field="miner">Miner</th>
+                        <th data-field="timestamp" data-formatter="dateFormatter">Timestamp</th>
+                        <th data-field="transactions" data-formatter="tranFormatter">Transactions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </fieldset>
+       <div id="transModal" class="modal fade">
+            <div class="modal-dialog" style="width:50%;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Transactions in Block #</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container" style="height:200px;overflow:scroll;">
+                            <table id="listTran" class="table table-striped">
+                                <thead class="thead-inverse">
+                                    <tr>
+                                        <th data-field="index">No.</th>
+                                        <th data-field="hash">Hash</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        <fieldset class="scheduler-border">
+            <legend class="scheduler-border">Transaction Info</legend>
+            <button type="button" class="btn btn-primary" id="tranBtn">Transaction Info</button>
+            <input type="text" class="form-control-static" id="tranInput" placeholder="Transaction Address ..." style="width:500px;">
+            <div class="container" style="height:400px;overflow:scroll;padding-left:0px;padding-right:0px;margin-left:0px;margin-right:0px;margin-top:20px;width:100%;">
+                <table id="tableTran" class="table table-striped">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th data-field="hash">Hash</th>
+                            <th data-field="blockNumber">Block#</th>
+                            <th data-field="from">From</th>
+                            <th data-field="to">To</th>
+                            <th data-field="value">Value</th>
+                            <th data-field="input" data-formatter="dataFormatter">Data</th>
+                            <th data-field="nonce">Nonce</th>
+                            <th data-field="hash" data-formatter="receiptFormatter">Receipt</th>
+                            <th data-field="hash" data-formatter="gasusedFormatter">Gas Used</th>
+                            <th data-field="hash" data-formatter="gascumulativeFormatter">Cumulative Gas Used</th>
+                            <th data-field="hash" data-formatter="contractFormatter">Contract Address</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </fieldset>
+        <br>
+
+        <fieldset class="scheduler-border">
+            <legend class="scheduler-border">Accounts Info</legend>
+            <div class="container" style="height:400px;overflow:scroll;padding-left:0px;padding-right:0px;margin-left:0px;margin-right:0px;margin-top:20px;width:100%;">
+                <table id="tableAccount" class="table table-striped">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th data-field="index">No.</th>
+                            <th data-field="account">Account</th>
+                            <th data-field="account" data-formatter="accFormatter_eth">ETH</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <button type="button" class="btn btn-primary" id="updateAccount" style="margin-top:5px;">Update Account List</button>
+            <button type="button" class="btn btn-primary" id="addAccount" style="margin-top:5px;">Add New Account</button>
+        </fieldset>
+        <br>
+
+        <fieldset class="scheduler-border">
+            <legend class="scheduler-border">Ether Transfer</legend>
+            <h5>From: </h5>
+            <select id="fromSelect" style="width:400px;height:28px;"></select>
+            <h5>To: </h5>
+            <select id="toSelect" style="width:400px;height:28px;"></select>
+            <h5>Amount to Transfer (ETH): </h5>
+            <input type="number" id="tranAmount" min="0" step="0.1" style="width:400px;" />
+            <br>
+            <button type="button" class="btn btn-primary" id="tranEthBtn" style="margin-top:10px;">Transfer</button>
+        </fieldset>
+        <br>

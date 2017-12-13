@@ -1,0 +1,126 @@
+﻿@model BlockChainExplorer.Models.BitcoinBlockchain
+
+<table width="100%" style="margin:10px;border-spacing:2px">
+    <tr>
+        <td width="800" valign="top">
+            <table width="100%" bgcolor="#FDFAE8" style="border:solid 1px #1f1257;">
+                <tr>
+                    <td name="blocknumber_row" width="100%">
+                        @using (Html.BeginForm("Index", "BitcoinBlockchain", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <h4>Analyze a block</h4>
+                            <hr />
+                            @Html.ValidationSummary("", new { @class = "text-danger" })
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.blocknumber, new { @class = "col-md-2 control-label" })
+                                <div class="col-md-10">
+                                    @Html.TextBoxFor(m => m.blocknumber, new { @class = "form-control" })
+                                    @Html.HiddenFor(m => m.latestblock)
+                                    @Html.HiddenFor(m => m.transactionid)
+                                    @Html.HiddenFor(m => m.walletid)
+                                    <h5><I>Latest bitcoin block is @Html.Raw(Model.latestblock)</I></h5>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <input type="submit" class="btn btn-default" value="Submit Block Number" name="submitButton"/>
+                                </div>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            </table>
+
+            <table width="100%" style="border:solid 1px #1f1257;">
+                <tr>
+                    <td name="transactionid_row" width="100%">
+                        @using (Html.BeginForm("Index", "BitcoinBlockchain", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <h4>Analyze a transaction</h4>
+                            <hr />
+                            @Html.ValidationSummary("", new { @class = "text-danger" })
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.transactionid, new { @class = "col-md-2 control-label" })
+                                <div class="col-md-10">
+                                    @Html.HiddenFor(m => m.blocknumber)
+                                    @Html.HiddenFor(m => m.latestblock)
+                                    @Html.TextBoxFor(m => m.transactionid, new { @class = "form-control" })
+                                    @Html.HiddenFor(m => m.walletid)
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <input type="submit" class="btn btn-default" value="Submit Transaction ID" name="submitButton" />
+                                </div>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            </table>
+
+            <table width="100%" bgcolor="#FDFAE8" style="border:solid 1px #1f1257;">
+                <tr>
+                    <td name="walletid_row" width="100%">
+                        @using (Html.BeginForm("Index", "BitcoinBlockchain", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+            {
+                            @Html.AntiForgeryToken()
+                            <h4>Analyze a wallet</h4>
+                            <hr />
+                            @Html.ValidationSummary("", new { @class = "text-danger" })
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.walletid, new { @class = "col-md-2 control-label" })
+                                <div class="col-md-10">
+                                    @Html.HiddenFor(m => m.blocknumber)
+                                    @Html.HiddenFor(m => m.latestblock)
+                                    @Html.HiddenFor(m => m.transactionid)
+                                    @Html.TextBoxFor(m => m.walletid, new { @class = "form-control" })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <input type="submit" class="btn btn-default" value="Submit Wallet ID" name="submitButton" />
+                                </div>
+                            </div>
+                        }
+
+                    </td>
+                </tr>
+            </table>
+            <div>
+                @Html.ActionLink("Back to Blockchain Explorer", "Index")
+            </div>
+
+
+        </td>
+
+
+
+        <td width="612" valign="top" align="left">
+            @* @Html.TextAreaFor(m => m.blockchaininfo, new { @class = "form-control" }) *@
+            <div class="valueContainer" style="margin:4px; border-spacing=2px; min-width:610px; border:1px solid black; border-radius:7px; background-color:lightgrey; vertical-align:top;align-content:flex-start">
+                <iframe id="blockchaininfo" style="min-width:600px;min-height:600px;overflow:scroll !important;"></iframe>
+            </div>
+        </td>
+
+    </tr>
+</table>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+
+<script type="text/javascript">
+    var external = '@Html.Raw(Model.blockchaininfo)';
+    document.getElementById('blockchaininfo').outerHTML = external;
+    //function clearform() {
+        //$('blockchaininfo').ready(function () {
+            //var external = '@Html.Raw(Model.blockchaininfo)';
+            //$('blockchaininfo').contents().find('body').
+                //html('div id="iframeContent" style="min-width:' + $('body').width() + 'px">' + external + '</div>');
+        //})
+    //}
+</script>
+

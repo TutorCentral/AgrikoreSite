@@ -1,0 +1,20 @@
+﻿@{
+    ViewBag.Title = "The Agrikore White Paper";
+}
+<h2>@ViewBag.Title.</h2>
+<br/>
+<p>Request the whitepaper here (@Html.ActionLink("Contact", "Contact", "Home"))...</p><br/>
+<p>Or access some of the ideas behind the strategy level developments we have introduced into the Agrikore blockchain, in chronological order.</p>
+<p><a href="@Url.Content("~/Content/Digital Currencies Need a Reserve System.pdf")">Digital Currencies Need a Reserve System</a></p>
+<p><a href="@Url.Content("~/Content/Monetary Policies and Digital Currencies.pdf")">Monetary Policies and Control of Digital Currencies</a></p>
+<p><a href="@Url.Content("~/Content/AfricanBlockchain.pdf")">Development of an African Blockchain Suited to Rural Agricultural Communities and the Unbanked and Under-banked</a></p>
+<p><a href="@Url.Content("~/Content/Corruption_Meet_Your_Cryptonite.pdf")">Corruption Meet Your Cryptonite - The Blockchain</a></p>
+
+<p>Short presentation of Cellulant's current Agrikore eco-system.</p>
+<p>
+    <video width="640" height="480" controls>
+        <source src="@Url.Content("~/Content/cellulant_video.mp4")" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <br/><a href="@Url.Content("~/Content/cellulant_video.mp4")">or click here for the Cellulant's Agrikore ecosystem presentation if your browser does not support embedded video.</a>
+</p>
